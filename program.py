@@ -2,6 +2,7 @@ import json, os, re
 from nltk.tokenize import word_tokenize
 #from nltk.corpus import stopwords
 
+
 def ensure_data_exists():
     ''' Ensures the data directory exists '''
 
