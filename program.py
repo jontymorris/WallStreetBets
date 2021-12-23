@@ -1,6 +1,11 @@
-import json, os, re
+import json, os, re, nltk
 from nltk.tokenize import word_tokenize
+from nltk.sentiment import SentimentIntensityAnalyzer
 #from nltk.corpus import stopwords
+
+nltk.download('punkt')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('vader_lexicon')
 
 
 def ensure_data_exists():
@@ -43,23 +48,36 @@ def load_comments():
 
 def find_stock_comments(stocks, comments):
     ''' Finds comments that mention a stock name '''
-    
-    #english_stopwords = stopwords.words('english')
 
-    stock_comments = []
+    grammer = r'action: {<V.*><N.*>}'
+    parser = nltk.RegexpParser(grammer)
+
+    analyzer = SentimentIntensityAnalyzer()
 
     for comment in comments:
-        text = word_tokenize(comment['body'].lower())
+        print(analyzer.polarity_scores(comment['body']))
+
         
-        if any((word in stocks) for word in text):
-            print('Found stock!')
-            print(text)
+        #words = word_tokenize(comment['body'].lower())
+        #pos_tokens = nltk.pos_tag(words)
+
+        #parsed_text = parser.parse(pos_tokens)
+        #chunks = [subtree for subtree in parsed_text.subtrees() if subtree.label() == 'action']
+
+        #for chunk in chunks:
+            #print(chunk)
 
 def main():
     ensure_data_exists()
 
     stocks = load_stocks()
     comments = load_comments()
+
+    comments2 = [
+        {
+            'body': 'I want to buy TSLA.'
+        }
+    ]
 
     comments = find_stock_comments(stocks, comments)
 
