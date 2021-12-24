@@ -856,7 +856,6 @@ CARG|CarGurus, Inc. - Class A Common Stock|Q|N|N|100|N|N
 CARV|Carver Bancorp, Inc. - Common Stock|S|N|N|100|N|N
 CARZ|First Trust NASDAQ Global Auto Index Fund|G|N|N|100|Y|N
 CASA|Casa Systems, Inc. - Common Stock|Q|N|N|100|N|N
-CASH|Meta Financial Group, Inc. - Common Stock|Q|N|N|100|N|N
 CASI|CASI Pharmaceuticals, Inc. - Common Stock|S|N|N|100|N|N
 CASS|Cass Information Systems, Inc - Common Stock|Q|N|N|100|N|N
 CASY|Caseys General Stores, Inc. - Common Stock|Q|N|N|100|N|N
@@ -2913,7 +2912,6 @@ LIAN|LianBio - American Depositary Shares|G|N|N|100|N|N
 LIBYU|Liberty Resources Acquisition Corp. - Unit|G|N|N|100|N|N
 LIDR|AEye, Inc. - Class A Common Stock|S|N|N|100|N|N
 LIDRW|AEye, Inc. - Warrant|S|N|N|100|N|N
-LIFE|aTyr Pharma, Inc. - Common Stock|S|N|N|100|N|N
 LILA|Liberty Latin America Ltd. - Class A Common Stock|Q|N|N|100|N|N
 LILAK|Liberty Latin America Ltd. - Class C Common Stock|Q|N|N|100|N|N
 LILM|Lilium N.V. - Class A Ordinary Shares|Q|N|N|100|N|N
@@ -2947,7 +2945,6 @@ LLNW|Limelight Networks, Inc. - Common Stock|Q|N|N|100|N|N
 LMACA|Liberty Media Acquisition Corporation - Series A Common Stock|S|N|N|100|N|N
 LMACU|Liberty Media Acquisition Corporation - Unit|S|N|N|100|N|N
 LMACW|Liberty Media Acquisition Corporation - Warrants|S|N|N|100|N|N
-LMAO|LMF Acquisition Opportunities Inc. - Class A common stock|S|N|N|100|N|N
 LMAOU|LMF Acquisition Opportunities Inc. - Unit|S|N|N|100|N|N
 LMAOW|LMF Acquisition Opportunities Inc. - Warrant|S|N|N|100|N|N
 LMAT|LeMaitre Vascular, Inc. - Common Stock|G|N|N|100|N|N
@@ -4102,7 +4099,6 @@ RELIW|Reliance Global Group, Inc. - Series A Warrants|S|N|N|100|N|N
 RELL|Richardson Electronics, Ltd. - Common Stock|Q|N|N|100|N|N
 RELY|Remitly Global, Inc. - Common stock|Q|N|N|100|N|N
 RENO|Renovare Environmental, Inc.  - Common Stock|S|N|N|100|N|N
-RENT|Rent the Runway, Inc. - Class A Common Stock|Q|N|N|100|N|N
 REPH|Recro Pharma, Inc. - Common Stock|S|N|N|100|N|N
 REPL|Replimune Group, Inc. - Common Stock|Q|N|N|100|N|N
 RESN|Resonant Inc. - Common Stock|S|N|N|100|N|N
