@@ -115,6 +115,9 @@ def plot_daily_frequency(tokens):
         freq = []
 
         sorted_days = sorted(stock_tokens, key=lambda x: x.date)
+        if len(sorted_days) < 5:
+            continue
+
         for day, day_tokens in groupby(sorted_days, lambda x: x.date):
             days.append(day)
             freq.append(len(list(day_tokens)))
