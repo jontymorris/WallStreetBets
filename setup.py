@@ -41,7 +41,6 @@ class RedditWorker:
 
         self.thread = threading.Thread(target=self.run)
         self.thread.start()
-        #self.run()
     
     def run(self):
         ''' Downloads the given urls '''
@@ -53,8 +52,9 @@ class RedditWorker:
                 try:
                     # download the response
                     response = requests.get(url)
-                    content = str(response.content, 'utf-8')
-                    self.comments += json.loads(content)['data']
+                    contents = str(response.content, 'utf-8')
+                    
+                    self.save_comments(contents)
 
                     # progress to next url
                     self.progress_bar.update()
@@ -67,6 +67,15 @@ class RedditWorker:
         except queue.Empty:
             # no more to download
             pass
+    
+    def save_comments(self, contents):
+        ''' Saves a simplified json comment response '''
+
+        for comment in json.loads(contents):
+            self.comments.append({
+                'body': comment['body'],
+                'created_utc': comment['created_utc']
+            })
 
 def save_comments(days_to_get=180):
     ''' Saves comments from WallStreetBets '''
@@ -101,4 +110,4 @@ def save_comments(days_to_get=180):
         print(f'> Saved {len(comments)} comments')
 
 if __name__ == '__main__':
-    save_comments(days_to_get=2)
+    save_comments()
