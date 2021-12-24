@@ -1,5 +1,6 @@
 import requests, json, tqdm, datetime, threading, queue, time
 
+
 baseurl = 'https://api.pushshift.io/reddit/search/comment/?subreddit=wallstreetbets&size=100'
 
 def get_start_of_day():
