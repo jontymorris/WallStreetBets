@@ -1,4 +1,4 @@
-import json, os, re, nltk
+import json, os, re, nltk, tqdm
 from nltk.sentiment import SentimentIntensityAnalyzer
 from datetime import datetime
 from matplotlib import pyplot
@@ -34,6 +34,8 @@ def ensure_data_exists():
 def load_stocks():
     ''' Loads the Nasdaq listed stocks '''
 
+    print('> Loading stocks from txt')
+
     with open('data/nasdaqlisted.txt') as handle:
         lines = handle.read().strip().split('\n')
 
@@ -55,6 +57,8 @@ def load_stocks():
 
 def load_comments():
     ''' Loads the Reddit comments '''
+
+    print('> Loading comments from json')
 
     with open('data/comments.json') as handle:
         return json.loads(handle.read())
@@ -98,9 +102,10 @@ def get_tokens_from_comment(comment, stocks):
 def find_stock_tokens(comments, stocks):
     ''' Find and tokenize comments that mention a stock '''
 
-    tokens = []
+    print('> Tokenizing the comments')
 
-    for comment in comments:
+    tokens = []
+    for comment in tqdm.tqdm(comments):
         for token in get_tokens_from_comment(comment, stocks):
             tokens.append(token)
     
