@@ -1,12 +1,23 @@
 import json, os, re, nltk
-from nltk.tokenize import word_tokenize
 from nltk.sentiment import SentimentIntensityAnalyzer
-#from nltk.corpus import stopwords
 
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('vader_lexicon')
+nltk.download('stopwords')
 
+stopwords = nltk.corpus.stopwords.words('english')
+analyzer = SentimentIntensityAnalyzer()
+
+class StockToken:
+    def __init__(self, stock, text, date):
+        self.stock = stock
+        self.text = text
+        self.date = date
+
+        # calculates a relative sentiment betweeen 0 and 1
+        polarity = analyzer.polarity_scores(text)
+        self.sentiment = polarity['pos'] + (polarity['neu'] * 0.5)
 
 def ensure_data_exists():
     ''' Ensures the data directory exists '''
@@ -43,43 +54,56 @@ def load_comments():
     ''' Loads the Reddit comments '''
 
     with open('data/comments.json') as handle:
-        contents = json.loads(handle.read())
-        return contents['data']
+        return json.loads(handle.read())
 
-def find_stock_comments(stocks, comments):
-    ''' Finds comments that mention a stock name '''
+def get_tokens_from_comment(comment, stocks):
+    ''' Find and tokenizes stocks in the comment '''
 
-    grammer = r'action: {<V.*><N.*>}'
-    parser = nltk.RegexpParser(grammer)
+    try:
+        sentences = nltk.sent_tokenize(comment['body'])
 
-    analyzer = SentimentIntensityAnalyzer()
+        for sentence in sentences:
+            words = nltk.word_tokenize(sentence.lower())
+            tags = nltk.pos_tag(words)
+
+            for tag in tags:
+                # must in stock list
+                if not tag[0] in stocks:
+                    continue
+
+                # must not be a stopword
+                if tag[0] in stopwords:
+                    continue
+
+                # must be used a noun
+                if not re.match(r'N.*', tag[1]):
+                    continue
+
+                yield StockToken(tag[0], sentence, comment['created_utc'])
+    except:
+        return []
+
+def find_stock_tokens(comments, stocks):
+    ''' Find and tokenize comments that mention a stock '''
+
+    tokens = []
 
     for comment in comments:
-        print(analyzer.polarity_scores(comment['body']))
-
-        
-        #words = word_tokenize(comment['body'].lower())
-        #pos_tokens = nltk.pos_tag(words)
-
-        #parsed_text = parser.parse(pos_tokens)
-        #chunks = [subtree for subtree in parsed_text.subtrees() if subtree.label() == 'action']
-
-        #for chunk in chunks:
-            #print(chunk)
+        for token in get_tokens_from_comment(comment, stocks):
+            tokens.append(token)
+    
+    return tokens
 
 def main():
+    # load the data
     ensure_data_exists()
-
-    stocks = load_stocks()
     comments = load_comments()
+    stocks = load_stocks()
 
-    comments2 = [
-        {
-            'body': 'I want to buy TSLA.'
-        }
-    ]
+    # tokenize the comments
+    tokens = find_stock_tokens(comments, stocks)
 
-    comments = find_stock_comments(stocks, comments)
+    print(tokens[0].stock, tokens[0].sentiment)
 
 if __name__ == '__main__':
     main()

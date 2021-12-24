@@ -1,5 +1,4 @@
-import requests, json
-from tqdm import tqdm
+import requests, json, tqdm
 
 
 def save_comments(days_to_get=90):
@@ -11,7 +10,7 @@ def save_comments(days_to_get=90):
     baseurl = 'https://api.pushshift.io/reddit/search/comment/?subreddit=wallstreetbets&size=100'
 
     # download the comments
-    for i in tqdm(range(0, days_to_get)):
+    for i in tqdm.tqdm(range(0, days_to_get)):
         url = baseurl + f'&before={i}d'
 
         response = requests.get(url)
