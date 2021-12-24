@@ -1,5 +1,9 @@
 import json, os, re, nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
+from datetime import datetime
+from matplotlib import pyplot
+from itertools import groupby
+
 
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
@@ -10,14 +14,13 @@ stopwords = nltk.corpus.stopwords.words('english')
 analyzer = SentimentIntensityAnalyzer()
 
 class StockToken:
-    def __init__(self, stock, text, date):
+    ''' Helper struct for storing token info '''
+
+    def __init__(self, stock, text, sentiment, date):
         self.stock = stock
         self.text = text
-        self.date = date
-
-        # calculates a relative sentiment betweeen 0 and 1
-        polarity = analyzer.polarity_scores(text)
-        self.sentiment = polarity['pos'] + (polarity['neu'] * 0.5)
+        self.sentiment = sentiment
+        self.date = datetime.fromtimestamp(date).date()
 
 def ensure_data_exists():
     ''' Ensures the data directory exists '''
@@ -56,6 +59,12 @@ def load_comments():
     with open('data/comments.json') as handle:
         return json.loads(handle.read())
 
+def get_relative_score(text):
+    ''' Calculates a relative sentiment score betweeen 0 and 1 '''
+
+    polarity = analyzer.polarity_scores(text)
+    return polarity['pos'] + (polarity['neu'] * 0.5)
+
 def get_tokens_from_comment(comment, stocks):
     ''' Find and tokenizes stocks in the comment '''
 
@@ -79,7 +88,10 @@ def get_tokens_from_comment(comment, stocks):
                 if not re.match(r'N.*', tag[1]):
                     continue
 
-                yield StockToken(tag[0], sentence, comment['created_utc'])
+                yield StockToken(
+                    tag[0], sentence,
+                    get_relative_score(sentence),
+                    comment['created_utc'])
     except:
         return []
 
@@ -94,6 +106,23 @@ def find_stock_tokens(comments, stocks):
     
     return tokens
 
+def plot_daily_frequency(tokens):
+    ''' Plots the daily frequency of each stock '''
+
+    sorted_stocks = sorted(tokens, key=lambda x: x.stock)
+    for stock, stock_tokens in groupby(sorted_stocks, lambda x: x.stock):
+        days = []
+        freq = []
+
+        sorted_days = sorted(stock_tokens, key=lambda x: x.date)
+        for day, day_tokens in groupby(sorted_days, lambda x: x.date):
+            days.append(day)
+            freq.append(len(list(day_tokens)))
+
+        pyplot.title(stock)
+        pyplot.plot(days, freq)
+        pyplot.show()
+
 def main():
     # load the data
     ensure_data_exists()
@@ -102,8 +131,9 @@ def main():
 
     # tokenize the comments
     tokens = find_stock_tokens(comments, stocks)
-
-    print(tokens[0].stock, tokens[0].sentiment)
+    
+    # now do some plotting
+    plot_daily_frequency(tokens)
 
 if __name__ == '__main__':
     main()
