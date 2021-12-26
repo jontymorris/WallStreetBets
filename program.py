@@ -1,17 +1,20 @@
-import json, os, re, nltk, tqdm
+import json, os, re, nltk, tqdm, multiprocessing
 from nltk.sentiment import SentimentIntensityAnalyzer
 from datetime import datetime
 from matplotlib import pyplot
 from itertools import groupby
 
-
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
 nltk.download('vader_lexicon')
-nltk.download('stopwords')
 
-stopwords = nltk.corpus.stopwords.words('english')
 analyzer = SentimentIntensityAnalyzer()
+
+symbols = {
+    'spy',
+    'gme',
+    'tsla'
+}
 
 class StockToken:
     ''' Helper struct for storing token info '''
@@ -31,30 +34,6 @@ def ensure_data_exists():
 
         exit(-1)
 
-def load_stocks():
-    ''' Loads the Nasdaq listed stocks '''
-
-    print('> Loading stocks from txt')
-
-    with open('data/nasdaqlisted.txt') as handle:
-        lines = handle.read().strip().split('\n')
-
-        stocks = {}
-
-        for line in lines[1:]:
-            parts = line.split('|')
-
-            # clean the name and symbol
-            stock_symbol = parts[0].lower()
-            stock_name = re.split(r'\,|( -)', parts[1])[0]
-            stock_name = stock_name.replace('.', '').lower()
-
-            # map name and symbol to symbol
-            stocks[stock_symbol] = stock_symbol
-            stocks[stock_name] = stock_symbol
-        
-        return stocks
-
 def load_comments():
     ''' Loads the Reddit comments '''
 
@@ -69,10 +48,11 @@ def get_relative_score(text):
     polarity = analyzer.polarity_scores(text)
     return polarity['pos'] + (polarity['neu'] * 0.5)
 
-def get_tokens_from_comment(comment, stocks):
+def get_tokens_from_comment(comment):
     ''' Find and tokenizes stocks in the comment '''
 
     try:
+        tokens = []
         sentences = nltk.sent_tokenize(comment['body'])
 
         for sentence in sentences:
@@ -81,34 +61,38 @@ def get_tokens_from_comment(comment, stocks):
 
             for tag in tags:
                 # must in stock list
-                if not tag[0] in stocks:
-                    continue
-
-                # must not be a stopword
-                if tag[0] in stopwords:
+                if not tag[0] in symbols:
                     continue
 
                 # must be used a noun
                 if not re.match(r'N.*', tag[1]):
                     continue
 
-                yield StockToken(
+                token = StockToken(
                     tag[0], sentence,
                     get_relative_score(sentence),
-                    comment['created_utc'])
+                    comment['created_utc']
+                )
+                
+                tokens.append(token)
+        
+        return tokens
     except:
         return []
 
-def find_stock_tokens(comments, stocks):
+def find_stock_tokens(comments):
     ''' Find and tokenize comments that mention a stock '''
 
     print('> Tokenizing the comments')
 
     tokens = []
-    for comment in tqdm.tqdm(comments):
-        for token in get_tokens_from_comment(comment, stocks):
-            tokens.append(token)
-    
+
+    with multiprocessing.Pool() as pool:
+        processes = pool.imap_unordered(get_tokens_from_comment, comments)
+
+        for results in tqdm.tqdm(processes, total=len(comments)):
+            tokens += results
+
     return tokens
 
 def plot_daily_frequency(tokens):
@@ -120,9 +104,6 @@ def plot_daily_frequency(tokens):
         freq = []
 
         sorted_days = sorted(stock_tokens, key=lambda x: x.date)
-        if len(sorted_days) < 5:
-            continue
-
         for day, day_tokens in groupby(sorted_days, lambda x: x.date):
             days.append(day)
             freq.append(len(list(day_tokens)))
@@ -135,10 +116,9 @@ def main():
     # load the data
     ensure_data_exists()
     comments = load_comments()
-    stocks = load_stocks()
 
     # tokenize the comments
-    tokens = find_stock_tokens(comments, stocks)
+    tokens = find_stock_tokens(comments)
     
     # now do some plotting
     plot_daily_frequency(tokens)
