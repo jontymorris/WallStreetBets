@@ -47,10 +47,10 @@ class RedditWorker:
         ''' Downloads the given urls '''
 
         try:
-            url = self.urls_queue.get_nowait()
-
             while True:
                 try:
+                    url = self.urls_queue.get_nowait()
+
                     # download the response
                     response = requests.get(url)
                     contents = str(response.content, 'utf-8')
@@ -59,7 +59,6 @@ class RedditWorker:
 
                     # progress to next url
                     self.progress_bar.update()
-                    url = self.urls_queue.get_nowait()
                 
                 except json.decoder.JSONDecodeError:
                     # wait a bit and retry
