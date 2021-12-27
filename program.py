@@ -119,10 +119,8 @@ def setup_pyplot(title):
     ''' Customizses pyplot for our graphs '''
 
     pyplot.title(title)
-
     fig = pyplot.gcf()
     fig.set_size_inches(18.5, 10.5)
-
     axs = pyplot.gca()
     axs.set_title(title)
 
@@ -141,6 +139,13 @@ def plot_stock_history(stock, dates):
     history = load_stock_history(stock)
     history_dates = [item[0] for item in history]
     history_closes = [item[1] for item in history]
+
+    # fit to the oldest date
+    for i in range(0, len(history)):
+        if history_dates[i] >= dates[0]:
+            history_dates = history_dates[i:]
+            history_closes = history_closes[i:]
+            break
 
     plot_relative_numbers(history_dates, history_closes, 'Relative Stock Price', 'b')
 
@@ -162,7 +167,7 @@ def plot_daily_frequency(tokens):
 
         plot_stock_history(stock, days)
         plot_relative_numbers(days, freq, 'Relative Daily Comments', 'r')
-
+        pyplot.legend(loc='best')
         pyplot.show()
 
 def plot_daily_sentiment(tokens):
@@ -187,7 +192,7 @@ def plot_daily_sentiment(tokens):
 
         plot_stock_history(stock, days)
         pyplot.plot(days, sentiment, label='Average Sentiment', color='r')
-
+        pyplot.legend(loc='best')
         pyplot.show()
 
 def main():
