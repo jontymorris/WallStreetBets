@@ -122,7 +122,7 @@ def save_stock_history(days_to_get=180):
     for symbol in tqdm.tqdm(symbols):
         ticker = yfinance.Ticker(symbol)
         history = ticker.history(period=f'{days_to_get}d', interval='1d')
-        history.to_json(f'data/{symbol}.json')
+        history.to_csv(f'data/{symbol}.csv')
 
 if __name__ == '__main__':
     save_comments()
