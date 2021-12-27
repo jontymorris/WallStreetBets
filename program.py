@@ -1,6 +1,5 @@
-import json, os, re, nltk, tqdm, multiprocessing
+import json, os, re, nltk, tqdm, multiprocessing, datetime
 from nltk.sentiment import SentimentIntensityAnalyzer
-from datetime import datetime
 from matplotlib import pyplot
 from itertools import groupby
 
@@ -23,7 +22,7 @@ class StockToken:
         self.stock = stock
         self.text = text
         self.sentiment = sentiment
-        self.date = datetime.fromtimestamp(date).date()
+        self.date = datetime.datetime.fromtimestamp(date).date()
 
 def ensure_data_exists():
     ''' Ensures the data directory exists '''
@@ -41,6 +40,27 @@ def load_comments():
 
     with open('data/comments.json') as handle:
         return json.loads(handle.read())
+
+def load_stock_history(symbol):
+    ''' Loads the closing price for given stock '''
+
+    history = []
+
+    with open(f'data/{symbol}.csv') as handle:    
+        lines = handle.read().split('\n')
+
+        for line in lines[1:]:
+            columns = line.split(',')
+            
+            if len(columns) < 5:
+                continue
+
+            date = datetime.date.fromisoformat(columns[0])
+            close = float(columns[4])
+
+            history.append([date, close])
+    
+    return history
 
 def get_relative_score(text):
     ''' Calculates a relative sentiment score betweeen 0 and 1 '''
@@ -95,6 +115,35 @@ def find_stock_tokens(comments):
 
     return tokens
 
+def setup_pyplot(title):
+    ''' Customizses pyplot for our graphs '''
+
+    pyplot.title(title)
+
+    fig = pyplot.gcf()
+    fig.set_size_inches(18.5, 10.5)
+
+    axs = pyplot.gca()
+    axs.set_title(title)
+
+def plot_relative_numbers(x_axis, y_axis, title, color):
+    ''' Plots the numbers in a relative graph between 0 and 1 '''
+
+    maximum = max(y_axis)
+    y_axis = [num / maximum for num in y_axis]
+
+    pyplot.plot(x_axis, y_axis, color=color, label=title)
+
+def plot_stock_history(stock, dates):
+    ''' Plots the stock history '''
+
+    # load the stock history
+    history = load_stock_history(stock)
+    history_dates = [item[0] for item in history]
+    history_closes = [item[1] for item in history]
+
+    plot_relative_numbers(history_dates, history_closes, 'Relative Stock Price', 'b')
+
 def plot_daily_frequency(tokens):
     ''' Plots the daily frequency of each stock '''
 
@@ -103,13 +152,42 @@ def plot_daily_frequency(tokens):
         days = []
         freq = []
 
+        # group tokens into days
         sorted_days = sorted(stock_tokens, key=lambda x: x.date)
         for day, day_tokens in groupby(sorted_days, lambda x: x.date):
             days.append(day)
             freq.append(len(list(day_tokens)))
 
-        pyplot.title(stock)
-        pyplot.plot(days, freq)
+        setup_pyplot(f'{stock.upper()} daily comments vs price')
+
+        plot_stock_history(stock, days)
+        plot_relative_numbers(days, freq, 'Relative Daily Comments', 'r')
+
+        pyplot.show()
+
+def plot_daily_sentiment(tokens):
+    ''' Plots the average daily sentiment of each stock '''
+
+    sorted_stocks = sorted(tokens, key=lambda x: x.stock)
+    for stock, stock_tokens in groupby(sorted_stocks, lambda x: x.stock):
+        days = []
+        sentiment = []
+
+        # group tokens into days
+        sorted_days = sorted(stock_tokens, key=lambda x: x.date)
+        for day, day_tokens in groupby(sorted_days, lambda x: x.date):
+            days.append(day)
+            
+            # average the days sentiment
+            day_tokens = list(day_tokens)
+            sentiment_sum = sum([token.sentiment for token in day_tokens])
+            sentiment.append(sentiment_sum / len(day_tokens))
+
+        setup_pyplot(f'{stock.upper()} daily sentiment vs price')
+
+        plot_stock_history(stock, days)
+        pyplot.plot(days, sentiment, label='Average Sentiment', color='r')
+
         pyplot.show()
 
 def main():
@@ -122,6 +200,7 @@ def main():
     
     # now do some plotting
     plot_daily_frequency(tokens)
+    plot_daily_sentiment(tokens)
 
 if __name__ == '__main__':
     main()
