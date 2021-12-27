@@ -1,7 +1,12 @@
-import requests, json, tqdm, datetime, threading, queue, time
-
+import requests, json, tqdm, datetime, threading, queue, time, yfinance
 
 baseurl = 'https://api.pushshift.io/reddit/search/comment/?subreddit=wallstreetbets&size=100'
+
+symbols = {
+    'spy',
+    'gme',
+    'tsla'
+}
 
 def get_start_of_day():
     ''' Gets a datetime object from the start of the day '''
@@ -109,5 +114,16 @@ def save_comments(days_to_get=180):
         progress_bar.close()
         print(f'> Saved {len(comments)} comments')
 
+def save_stock_history(days_to_get=180):
+    ''' Saves the stock price history '''
+
+    print(f'> Downloading stock prices for past {days_to_get} days')
+
+    for symbol in tqdm.tqdm(symbols):
+        ticker = yfinance.Ticker(symbol)
+        history = ticker.history(period=f'{days_to_get}d', interval='1d')
+        history.to_json(f'data/{symbol}.json')
+
 if __name__ == '__main__':
     save_comments()
+    save_stock_history()

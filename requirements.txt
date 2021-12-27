@@ -1,3 +1,4 @@
 nltk
 tqdm
 matplotlib
+yfinance
